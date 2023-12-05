@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="350ab70a-4012-4046-8deb-3675f1b3e4f0" basePath="/api" >
+		<http:request-connection host="localhost" port="8084" />
+	</http:request-config>
 	<sub-flow name="post:\customer:application\json:tp2-pl-customer-xys-config_SubFlow" doc:id="a0267cd3-71f9-4b97-91a4-d9f4605e50e8" >
 		<logger level="INFO" doc:name="Logger" doc:id="2af82bf9-d521-4a1d-84e3-6a4e5199304f" message="get:\order\(id):el-xys-config" />
 		<ee:transform doc:name="filtragem dos dados do payload do customer" doc:id="113a37b8-19c6-4f96-97a4-b2f77ed54b18" >
@@ -21,9 +25,11 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="b8eafa65-a0e0-4edf-a552-51ee29e94e3e" config-ref="HTTP_Request_configuration" path="/customer"/>
 	</sub-flow>
 	<sub-flow name="get:\customer:tp2-pl-customer-xys-config_SubFlow" doc:id="b8cd7ddc-85ac-4c49-9b40-52e2af64dbab" >
 		<logger level="INFO" doc:name="Logger" doc:id="da220412-c140-4e69-be8e-4c4b87ebc5ff" message="get:\order\(id):el-xys-config" />
+		<http:request method="GET" doc:name="Request" doc:id="75cf34b1-caa8-4f3f-9fc1-b304d9e5af04" config-ref="HTTP_Request_configuration" path="/customer"/>
 	</sub-flow>
 	<sub-flow name="get:\customer\(id):tp2-pl-customer-xys-config_SubFlow" doc:id="6c933be3-474d-4195-b767-912617c36ca7" >
 		<logger level="INFO" doc:name="Logger" doc:id="bae80a6b-e125-4418-93e5-114481c89642" message="get:\order\(id):el-xys-config" />
@@ -32,6 +38,7 @@ output application/json
 				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="f3e707d9-74cb-43c3-be7f-a4ea672af730" config-ref="HTTP_Request_configuration" path="/customer/{id}"/>
 	</sub-flow>
 	<sub-flow name="put:\customer\(id):application\json:tp2-pl-customer-xys-config_SubFlow" doc:id="74545cac-f650-4034-87b4-e52736563ef8" >
 		<logger level="INFO" doc:name="Logger" doc:id="e6c51ddb-f015-49f2-89ea-298f0d38003e" message="get:\order\(id):el-xys-config" />
@@ -55,6 +62,7 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="08d78647-f792-4065-b0c5-0c8683bc0799" config-ref="HTTP_Request_configuration" path="/customer/{id}"/>
 	</sub-flow>
 	<sub-flow name="patch:\customer\(id):application\json:tp2-pl-customer-xys-config_SubFlow" doc:id="68740bc4-c2e9-4ddb-997d-41ca370553d5" >
 		<logger level="INFO" doc:name="Logger" doc:id="f1c532f3-91d3-41a6-8bff-daab101cb56b" message="get:\order\(id):el-xys-config" />
@@ -80,6 +88,7 @@ var data = mappedPayload mapObject {
 ]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="58c97c9f-3987-4c88-b52f-8297bc3ae63d" path="/customer/{id}" config-ref="HTTP_Request_configuration"/>
 	</sub-flow>
 	<sub-flow name="delete:\customer\(id):tp2-pl-customer-xys-config_SubFlow" doc:id="5689e4da-055a-48dd-a76b-58d3f2dd02f1" >
 		<logger level="INFO" doc:name="Logger" doc:id="5e444b68-dcbc-48ca-9dc8-c6fcd53e69d0" message="get:\order\(id):el-xys-config" />
@@ -88,5 +97,6 @@ var data = mappedPayload mapObject {
 				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams."id"]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="e770fe44-7d6c-4d98-ac58-29e82defe702" config-ref="HTTP_Request_configuration" path="/customer/{id}"/>
 	</sub-flow>
 </mule>
