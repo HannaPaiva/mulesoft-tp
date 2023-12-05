@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_2525f5db_f532_4f84_9810_7f82533687e4_Output_Payload = Array<{  carrier?: String,   price?: Number,   customer_id?: Number,   purchase_date?: String,   product_name?: String,   _?: Any}>
+
