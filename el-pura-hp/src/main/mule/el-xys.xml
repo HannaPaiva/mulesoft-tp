@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+    <http:listener-config name="el-xys-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="el-xys-config" api="resource::b808ca82-36d9-414d-825a-2fd52ff3ee00:el-xys:1.0.4:oas:zip:el-xys.yaml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="85044c35-0124-4cb7-95fb-06ae4551f348">
+        <db:my-sql-connection host="localhost" port="3306" user="root" database="xys_store" />
+    </db:config>
+    <flow name="el-xys-main">
+        <http:listener config-ref="el-xys-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="el-xys-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="el-xys-console">
+        <http:listener config-ref="el-xys-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="el-xys-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\customers:el-xys-config" doc:id="d0246c61-d245-4fb7-bb93-1bb2090c8b1f">
+        <logger level="INFO" doc:name="Logger" doc:id="3f14e8b7-98f4-4047-b2bb-f52f115a4768" message="get:\customers:el-xys-config" />
+        <db:select doc:name="seleciona todos os costumers" doc:id="0207970a-f4eb-4d2b-ba9e-d6fb4b94103a" config-ref="Database_Config">
+            <db:sql><![CDATA[SELECT * FROM customers]]></db:sql>
+        </db:select>
+        <ee:transform doc:name="filtra os dados de todos os customers" doc:id="b0436121-220e-4822-b4b7-865883261963">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+payload map ((item, index) -> 
+{
+    name: item.name,
+    last_name: item.last_name,
+    date_of_birth: item.date_of_birth,
+    address: item.address,
+    identity_card: item.identity_card,
+    date_of_creation: item.date_of_creation
+})]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\customers:application\json:el-xys-config" doc:id="0d501fed-7248-4ba7-8054-11d7770a9cd0">
+        <logger level="INFO" doc:name="Logger" doc:id="18ddb2c8-9db3-4f83-8178-24d2ba611c30" message="post:\customers:application\json:el-xys-config" />
+        <ee:transform doc:name="filtragem dos dados do payload do customer" doc:id="578bcce9-89f9-4ebc-b671-29fcfbbfdb27">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:insert doc:name="insert na base de dados do customer" doc:id="3a06dd30-15ce-4f21-94b7-33e18c1b45f9" config-ref="Database_Config">
+            <db:sql><![CDATA[INSERT INTO customers (name, last_name, date_of_birth, address, identity_card, date_of_creation)
+VALUES (:name, :last_name, :date_of_birth, :address, :identity_card, :date_of_creation);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]]></db:input-parameters>
+        </db:insert>
+		<db:select doc:name="query para devolver o último customer inserido" doc:id="14fb1cba-e205-4fb9-bf39-43d90a295d27" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT MAX(id) AS maxid, CONCAT(name, " ", last_name) AS name
+FROM customers
+WHERE id = (SELECT MAX(id) FROM customers);
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="resposta da requisição" doc:id="00df29be-4925-4c04-92ae-1f613bf7bc56" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+	
+id: payload.maxid[0],
+name: payload.name[0]
+	
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+	<flow name="get:\customers\(id):el-xys-config" doc:id="b1d57d38-7e48-4be1-936d-2c19e88d1bd0">
+		<logger level="INFO" doc:name="Logger" doc:id="c9a08f53-d943-47e8-b72e-4330090b337d" message="patch:\customers\(id):application\json:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="2945b06f-9a69-4b27-bc2c-5d491ead51bb" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="query para receber o customer especifico" doc:id="a594bf86-51b4-4c4e-8602-4ad8d5270001" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT *
+FROM customers WHERE id = :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{id:vars.id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="filtrar output e caso não exista, mostra que não foi encontrado" doc:id="2767cdf1-b478-46c9-9b65-51957a7c3bfb">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+if (isEmpty(payload.date_of_creation)) 
+{
+  
+    "message": "Cliente não encontrado"
+  
+}
+else 
+{
+  
+    "name": payload.name[0],
+    "last_name": payload.last_name[0],
+    "date_of_birth":payload.date_of_birth[0],
+    "address": payload.address[0],
+    "identity_card": payload.identity_card[0],
+    "date_of_creation": payload.date_of_creation[0]
+  
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+    <flow name="patch:\customers\(id):application\json:el-xys-config" doc:id="921ff5a5-42a5-43c5-b152-d3ffaf8a1ec8">
+        <logger level="INFO" doc:name="Logger" doc:id="62c2452b-56fa-41d7-84ec-a141882e604d" message="patch:\customers\(id):application\json:el-xys-config" />
+        <ee:transform doc:name='uriParam "id"' doc:id="7b2d96ac-5eea-47bc-988e-63c7129025a9">
+            <ee:variables>
+                <ee:set-variable variableName="id"><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<ee:transform doc:name="código dataweave para criar um update com colunas dinâmicas" doc:id="89f5197b-8bdd-4645-b574-dd632fe9936d" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="dados" ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+
+var mappedPayload = payload filterObject ((value, key, index) -> value != null)
+var data = mappedPayload mapObject {
+    "query": $$ ++ " = '" ++ $ ++ "'"
+} pluck $ joinBy ", "
+
+---
+
+"query": "UPDATE customers SET " ++ data ++ " where id = " ++ vars.id
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:update doc:name="ação de atualizaçao de recursos especificos na base de dados" doc:id="eb3598b4-5e8c-402d-ae7c-7b78e9c63848" config-ref="Database_Config" autoGenerateKeys="true">
+			<db:sql><![CDATA[#[vars.dados.query]]]></db:sql>
+		</db:update>
+    </flow>
+    <flow name="delete:\customers\(id):el-xys-config" doc:id="e7ba52c2-cd4e-4b39-a15e-8e70522e6621">
+        <logger level="INFO" doc:name="Logger" doc:id="a270bf45-25fb-4689-b78b-72058c5f2673" message="#[vars.id]]" />
+        <ee:transform doc:name='uriParam "id"' doc:id="ccd4d3ed-b795-4ec8-b9e8-61d91d2b06ed">
+            <ee:variables>
+                <ee:set-variable variableName="id"><![CDATA[attributes.uriParams."id"]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<db:delete doc:name="ação de delete na base de dados" doc:id="eee5a28c-d257-4d99-800e-12b4e606e778" config-ref="Database_Config">
+            <db:sql><![CDATA[DELETE FROM customers WHERE id = :id]]></db:sql>
+            <db:input-parameters><![CDATA[#[{id:vars.id}]]]></db:input-parameters>
+        </db:delete>
+    </flow>
+    <flow name="put:\customers\(id):application\json:el-xys-config" doc:id="82027c0b-6526-4396-82d3-5675c34fa0b9">
+        <logger level="INFO" doc:name="Logger" doc:id="9f2c1431-72b7-4a5b-b6e4-03dddad8f62e" message="put:\customers\(id):application\json:el-xys-config" />
+        <ee:transform doc:name='uriParam "id"' doc:id="d11c0cee-1429-4cd7-9d94-b5ad53ea40f8">
+            <ee:variables>
+                <ee:set-variable variableName="id"><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="filtragem do payload do customer" doc:id="dc9ca8a5-f1b3-4586-b69a-6cd9fe0c4dda">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:stored-procedure doc:name="upsert com stored procedure, se não existir, cria, se existir, atualiza" doc:id="c1b49404-cf4f-4a42-888d-221d572f385e" config-ref="Database_Config">
+			<db:sql ><![CDATA[CALL update_or_insert(
+	:id, 
+ 	:name,
+    :last_name,
+    :date_of_birth,
+ 	:address,
+  	:identity_card
+
+)
+
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+                'id': vars.id,
+                'name': payload.name,
+                'last_name': payload.last_name,
+                'date_of_birth': payload.date_of_birth,
+                'address': payload.address,
+                'identity_card': payload.identity_card
+             
+            }]]]></db:input-parameters>
+		</db:stored-procedure>
+		<ee:transform doc:name="resposta da requisição" doc:id="644d56c9-47c7-439a-8d9a-d560d65f09d9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+"message": "Alteração à base de dados feita com sucesso",
+"id": vars.id
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+	<flow name="getAllOrders" doc:id="7e602435-303f-4691-af4f-e5e1a1ea5110" >
+		<logger level="INFO" doc:name="Logger" doc:id="ad18a799-6cef-44d0-9695-cd7210b57840" />
+		<db:select doc:name="selecionar todas as orders, organizadas com cada cliente, cada produto" doc:id="cea89550-623f-4c2a-8d68-997ff7e53c7e" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT
+   O.id_order AS order_id,
+    c.id AS customer_id,
+    p.name AS product_name,
+    o.purchase_date,
+    p.price,
+    o.carrier,
+    CONCAT(c.name, ' ', c.last_name) AS customer_name,
+    TIMESTAMPDIFF(YEAR, c.date_of_birth, CURDATE()) AS customer_age,
+    c.address,
+
+    c.identity_card
+
+
+FROM
+    customers c
+    
+right JOIN
+    orders o ON c.id = o.id_customer
+left JOIN
+    products p ON o.id_product = p.id_product
+
+GROUP BY
+    o.id_order;
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="filtra o output das encomendas" doc:id="a6e29130-c478-4b8a-8fd8-0ad15d70192b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload map ((item, index) -> 
+{
+    order_id: item.order_id,
+    customer_id: item.customer_id,
+    costumer_name: item.customer_name,
+    costumer_age: item.customer_age,
+    product_name: item.product_name,
+    purchase_date: item.purchase_date,
+    price: item.price,
+    carrier: item.carrier,
+    address: item.address,
+    identity_card: item.identity_card,
+
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="postOrder" doc:id="69fc4e41-fee9-4826-beda-27140085eb5f" >
+		<logger level="INFO" doc:name="Logger" doc:id="f4f7d9d7-76c0-4110-a616-781439548447" />
+		<ee:transform doc:name="filtragem dos dados do payload da order" doc:id="5da00a24-e551-4a2c-ac63-909a092e7bf4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id_customer: payload.id_customer,	
+  id_product: payload.product_name,
+  datails: payload.details,
+  carrier: payload.carrier,
+  purchase_date: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:select doc:name="Select" doc:id="fb51eaba-4479-43fe-8f70-01fa884b3e9c" >
+			<db:sql ><![CDATA[select * customer where id = :id]]></db:sql>
+		</db:select>
+		<db:insert doc:name="insert na base de dados da order" doc:id="b8b5e898-2411-4d4f-8735-af98f1724026" config-ref="Database_Config" >
+			<db:sql ><![CDATA[INSERT INTO orders (id_customer, id_product, details, carrier, purchase_date)
+VALUES (:id_customer, :id_product, :details, :carrier, :purchase_date);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  id_customer: payload.id_customer,	
+  id_product: payload.product_name,
+  datails: payload.details,
+  carrier: payload.carrier,
+  purchase_date: now()
+}]]]></db:input-parameters>
+		</db:insert>
+		<db:select doc:name="query para devolver a última compra inserida" doc:id="ec237c7a-4aa7-49ab-9597-05a70370d534" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT MAX(id_order) AS maxid
+WHERE id = (SELECT MAX(id_order) FROM orders);
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="resposta da requisição" doc:id="e166b290-dc81-473e-9a38-3eb4b536c69c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+	
+id: payload.maxid[0],
+name: payload.name[0]
+	
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetOrderByID" doc:id="9f044332-04f9-474d-9d48-05d20c886b19">
+		<logger level="INFO" doc:name="Logger" doc:id="6e423078-fe19-4439-9801-a4f6d953e6e2" />
+		<ee:transform doc:name='uriParam "id"' doc:id="19d8738a-2ddd-40f0-a98d-4008b2c57626" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="seleciona encomenda especifica por id" doc:id="c560540f-3f90-43a1-9c0a-ca3284599fad" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT
+   O.id_order AS order_id,
+    c.id AS customer_id,
+    p.name AS product_name,
+    o.purchase_date,
+    p.price,
+    o.carrier,
+    CONCAT(c.name, ' ', c.last_name) AS customer_name,
+    TIMESTAMPDIFF(YEAR, c.date_of_birth, CURDATE()) AS customer_age,
+    c.address,
+
+    c.identity_card
+
+
+FROM
+    customers c
+    
+right JOIN
+    orders o ON c.id = o.id_customer
+left JOIN
+    products p ON o.id_product = p.id_product
+    
+ WHERE id_order = :id
+
+GROUP BY
+    o.id_order;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: vars.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="filtra o output das encomendas" doc:id="d4d42433-c28d-4ac2-8a9e-c886923d1414" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+    order_id: payload.order_id,
+    customer_id: payload.customer_id,
+    costumer_name: payload.customer_name,
+    costumer_age: payload.customer_age,
+    product_name: payload.product_name,
+    purchase_date: payload.purchase_date,
+    price: payload.price,
+    carrier: payload.carrier,
+    address: payload.address,
+    identity_card: payload.identity_card,
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getAllOrdersFromCustomer" doc:id="c84e9400-3b66-4d42-bb4f-d22d1b071ca7" >
+		<logger level="INFO" doc:name="Logger" doc:id="e7e285b6-2310-4724-b3cc-0673f1f64a6e" />
+		<ee:transform doc:name='uriParam "id"' doc:id="e1cbf7d0-bfe5-4cb1-8bad-5a2993e92114" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="seleciona encomenda especifica por id" doc:id="851c6a98-ef65-4444-a327-eb599bacf828" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT
+   O.id_order AS order_id,
+    c.id AS customer_id,
+    p.name AS product_name,
+    o.purchase_date,
+    p.price,
+    o.carrier,
+    CONCAT(c.name, ' ', c.last_name) AS customer_name,
+    TIMESTAMPDIFF(YEAR, c.date_of_birth, CURDATE()) AS customer_age,
+    c.address,
+
+    c.identity_card
+
+
+FROM
+    customers c
+    
+right JOIN
+    orders o ON c.id = o.id_customer
+left JOIN
+    products p ON o.id_product = p.id_product
+    
+ WHERE id = :id
+
+GROUP BY
+    o.id_order;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: vars.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="filtra o output das encomendas" doc:id="d6affd63-63a6-4d1b-88f2-458c25c6d7d0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+    order_id: payload.order_id,
+    customer_id: payload.customer_id,
+    costumer_name: payload.customer_name,
+    costumer_age: payload.customer_age,
+    product_name: payload.product_name,
+    purchase_date: payload.purchase_date,
+    price: payload.price,
+    carrier: payload.carrier,
+    address: payload.address,
+    identity_card: payload.identity_card,
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
