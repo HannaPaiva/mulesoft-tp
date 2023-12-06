@@ -6,10 +6,10 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="310a0e6b-6d6d-4976-8aed-509f690f6269" basePath="/api" >
-		<http:request-connection host="localhost" port="8083" />
+		<http:request-connection host="localhost" port="8084" />
 	</http:request-config>
 	<sub-flow name="getAllCustomers" doc:id="a7a79d84-2db0-4103-be56-5e6262a1fb48" >
 		<logger level="INFO" doc:name="Logger" doc:id="ce091845-6c95-4dd7-8b39-5cf9185e4371" />
-		<http:request method="POST" doc:name="Request" doc:id="df20bc25-d5fe-4d99-9e75-80524d1facdf" path="/customer" config-ref="HTTP_Request_configuration2"/>
+		<http:request method="GET" doc:name="Request" doc:id="df20bc25-d5fe-4d99-9e75-80524d1facdf" path="/customer" config-ref="HTTP_Request_configuration2"/>
 	</sub-flow>
 </mule>

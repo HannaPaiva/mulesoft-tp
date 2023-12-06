@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="8a871cd7-e735-4253-bf57-931800eb4d92" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" database="xys_store" />
+	</db:config>
+	<sub-flow name="getSpecificCustomer" doc:id="45d0ec4e-ab98-4a91-9026-a85e71d9b92e" >
+		<logger level="INFO" doc:name="Logger" doc:id="6c471fee-7a9c-4cdd-8f4a-33e993158aee" />
+		<db:select doc:name="Select" doc:id="511e1970-76fd-41de-93ee-ddddc930afd1" config-ref="Database_Config1">
+			<db:sql ><![CDATA[SELECT *
+FROM customers WHERE id = :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{id:vars.id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="filtrar output e caso não exista, mostra que não foi encontrado" doc:id="51bd5a1e-665c-4624-9294-147ae6d100ee" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+if (isEmpty(payload.date_of_creation)) 
+{
+  
+    "message": "Cliente não encontrado"
+  
+}
+else 
+{
+  
+    "name": payload.name[0],
+    "last_name": payload.last_name[0],
+    "date_of_birth":payload.date_of_birth[0],
+    "address": payload.address[0],
+    "identity_card": payload.identity_card[0],
+    "date_of_creation": payload.date_of_creation[0]
+  
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
     <http:listener-config name="tp2-sl-customer-xys-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8081" />
+        <http:listener-connection host="0.0.0.0" port="8084" />
     </http:listener-config>
     <apikit:config name="tp2-sl-customer-xys-config" api="resource::c0793e28-ee01-48b7-b0e2-59cf0dce06b4:tp2-sl-customer-xys:1.0.0:oas:zip:tp2-sl-customer-xys.yaml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="tp2-sl-customer-xys-main">
@@ -148,17 +148,15 @@ output application/json
         <logger level="INFO" message="patch:\customer\(id):application\json:tp2-sl-customer-xys-config" />
     </flow>
     <flow name="get:\customer:tp2-sl-customer-xys-config">
-        <logger level="INFO" message="get:\customer:tp2-sl-customer-xys-config" />
+		<logger level="INFO" doc:name="Logger" doc:id="7b1ca441-00ad-4639-8be0-6b7d64a9e8aa" />
+		<flow-ref doc:name="Flow Reference" doc:id="5683fe87-3c9c-4f97-b4b6-e315735edd29" name="getAllCustomers"/>
     </flow>
     <flow name="get:\customer\(id):tp2-sl-customer-xys-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
         <logger level="INFO" message="get:\customer\(id):tp2-sl-customer-xys-config" />
+		<flow-ref doc:name="Flow Reference" doc:id="13e08ddf-0b8b-4ca8-90ef-574adb4178a2" name="getSpecificCustomer"/>
     </flow>
     <flow name="post:\customer:application\json:tp2-sl-customer-xys-config">
-        <logger level="INFO" message="post:\customer:application\json:tp2-sl-customer-xys-config" />
+		<logger level="INFO" doc:name="Logger" doc:id="f9c69e74-2ffe-4e16-a3d2-d3c145290bc8" />
+		<flow-ref doc:name="Flow Reference" doc:id="139a37f1-1928-4d5f-8341-8c7ec9bdb759" name="postCustomer"/>
     </flow>
 </mule>

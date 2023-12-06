@@ -149,15 +149,11 @@ output application/json
     </flow>
     <flow name="get:\customer:el-xys-config">
         <logger level="INFO" message="get:\customer:el-xys-config" />
-		<flow-ref doc:name="getAllCustomers" doc:id="b07c8576-6686-4e12-b295-ee91e8cdc789" name="postCustomer"/>
+		<flow-ref doc:name="getAllCustomers" doc:id="b07c8576-6686-4e12-b295-ee91e8cdc789" name="getAllCustomers"/>
     </flow>
     <flow name="get:\customer\(id):el-xys-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
         <logger level="INFO" message="get:\customer\(id):el-xys-config" />
+		<flow-ref doc:name="Flow Reference" doc:id="5bf3a638-971a-4b7b-9d5b-4c01215c1bff" name="getSpecificCustomer"/>
     </flow>
     <flow name="get:\customer\(id)\orders:el-xys-config">
         <ee:transform doc:name="Transform Message">
@@ -177,9 +173,9 @@ output application/json
     </flow>
     <flow name="post:\customer\order:application\json:el-xys-config">
         <logger level="INFO" message="post:\customer\order:application\json:el-xys-config" />
-		<flow-ref doc:name="Flow Reference" doc:id="3f75e511-26ad-46c5-87cc-ba28cf1f4851" name="postCustomer"/>
     </flow>
     <flow name="post:\customer:application\json:el-xys-config">
         <logger level="INFO" message="post:\customer:application\json:el-xys-config" />
+		<flow-ref doc:name="Flow Reference" doc:id="3f75e511-26ad-46c5-87cc-ba28cf1f4851" name="PostCustomer" />
     </flow>
 </mule>

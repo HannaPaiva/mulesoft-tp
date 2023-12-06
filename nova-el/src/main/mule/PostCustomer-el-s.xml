@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="df85c3cf-22b4-4e36-b4f0-c628cb3ac27e" basePath="/api" >
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<sub-flow name="PostCustomer" doc:id="2d7665f6-6ee4-451a-b266-a44fc524ec80" >
+		<logger level="INFO" doc:name="Logger" doc:id="d494f1e8-bdf4-4df2-a236-ff86aed5a7a0" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="ac2e437e-9694-4bf1-bcaa-f26d6bbcdf68" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "name": payload.name,
+  "last_name": payload.last_name,
+  "date_of_birth": payload.date_of_birth,
+  "address": payload.address,
+  "identity_card": payload.identity_card,
+  "date_of_creation": now() as Date { format: "yyyy-MM-dd" }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3453907b-006a-4961-8a7e-5c8c205b8f18" message="#[payload]"/>
+		<http:request method="POST" doc:name="Request" doc:id="d8bc0ff0-bac9-4015-afad-3642905dddae" path="/customer" config-ref="HTTP_Request_configuration"/>
+	</sub-flow>
+</mule>

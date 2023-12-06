@@ -153,12 +153,8 @@ output application/json
 		<flow-ref doc:name="getAllCustomers" doc:id="4d76b28f-f27b-4b37-b281-0e1af887b0f3" name="getAllCustomers"/>
     </flow>
     <flow name="get:\customer\(id):tp2-pl-customer-xys-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
         <logger level="INFO" message="get:\customer\(id):tp2-pl-customer-xys-config" />
+		<flow-ref doc:name="Flow Reference" doc:id="9c4db674-7c29-45ec-bf36-039777d07dab" name="getSpecificCustomer"/>
     </flow>
     <flow name="post:\customer:application\json:tp2-pl-customer-xys-config">
         <logger level="INFO" message="post:\customer:application\json:tp2-pl-customer-xys-config" />

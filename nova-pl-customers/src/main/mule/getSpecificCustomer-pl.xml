@@ -1,5 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="97301bd6-1744-4c35-a7c0-db9854379b48" basePath="/api" >
+		<http:request-connection host="localhost" port="8084" />
+	</http:request-config>
+	<sub-flow name="getSpecificCustomer" doc:id="004dad94-17d5-4b2e-8455-440ced3edd8c" >
+		<logger level="INFO" doc:name="Logger" doc:id="af041ca7-9e14-4249-832c-73e263622fb3" />
+		<ee:transform doc:name='uriParam "id"' doc:id="0974d6af-49e6-4e39-83ff-52c7e63e32d6" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id' as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="ac2a9838-c2a0-4559-a09c-7ba8a0d6f7cb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "id":vars.id
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="ce872244-b5e8-4131-a595-1437fd99f3f3" config-ref="HTTP_Request_configuration2" path="/customer/{id}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : vars.id
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	id : vars.id
+}]]]></http:query-params>
+		</http:request>
+	</sub-flow>
+</mule>

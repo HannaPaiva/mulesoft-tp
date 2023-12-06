@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="19f5cf05-5825-4c6a-a9ba-467bbeaaca79" >
 		<db:my-sql-connection host="localhost" port="3306" user="root" database="xys_store" />
 	</db:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="daf778b1-d42c-4842-b9de-debb2f6fa091" basePath="/api" >
+		<http:request-connection host="localhost" port="8084" />
+	</http:request-config>
 	<sub-flow name="postCustomer" doc:id="0eb9867f-e7f9-46ca-988a-eb1c8611601b" >
 		<logger level="INFO" doc:name="Logger" doc:id="79942563-44c7-4487-8a40-cf179ddfab94" />
 		<ee:transform doc:name="filtragem dos dados do payload do customer" doc:id="aeecb13b-36c8-48eb-89f7-37b8c3738877">
@@ -21,42 +25,10 @@ output application/json
   date_of_birth: payload.date_of_birth,
   address: payload.address,
   identity_card: payload.identity_card,
-  date_of_creation: now()
+  date_of_creation: now() as Date { format: "yyyy-MM-dd" }
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<db:insert doc:name="insert na base de dados do customer" doc:id="83fff455-321c-4b0b-b9d0-9493e95542e5" config-ref="Database_Config">
-			<db:sql><![CDATA[INSERT INTO customers (name, last_name, date_of_birth, address, identity_card, date_of_creation)
-VALUES (:name, :last_name, :date_of_birth, :address, :identity_card, :date_of_creation);]]></db:sql>
-			<db:input-parameters><![CDATA[#[{
-  name: payload.name,
-  last_name: payload.last_name,
-  date_of_birth: payload.date_of_birth,
-  address: payload.address,
-  identity_card: payload.identity_card,
-  date_of_creation: now()
-}]]]></db:input-parameters>
-		</db:insert>
-		<db:select doc:name="query para devolver o último customer inserido" doc:id="02737876-f328-4c5e-8de9-db6ff28d8e99" config-ref="Database_Config">
-			<db:sql><![CDATA[SELECT MAX(id) AS maxid, CONCAT(name, " ", last_name) AS name
-FROM customers
-WHERE id = (SELECT MAX(id) FROM customers);
-]]></db:sql>
-		</db:select>
-		<ee:transform doc:name="resposta da requisição" doc:id="508e314c-51ba-4b8a-a636-9ec58df1a901">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-
-{
-	
-id: payload.maxid[0],
-name: payload.name[0]
-	
-}
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="729d00b1-0a89-41d5-ae48-9ef09e7b62e8" path="/customer" config-ref="HTTP_Request_configuration"/>
 	</sub-flow>
 </mule>

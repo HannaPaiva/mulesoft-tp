@@ -1,5 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="8531be1d-5b1a-4c4a-ae59-d8c49a93e7b3" basePath="/api" >
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<sub-flow name="getSpecificCustomer" doc:id="c6b2fa54-5e3b-416c-b17d-bbabf2947a10" >
+		<logger level="INFO" doc:name="Logger" doc:id="21d4c0cb-0338-4743-861c-ca608a978279" />
+		<ee:transform doc:name='uriParam "id"' doc:id="9c8e2e76-d4e6-4ecc-8132-f38aabc791b2" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id' as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="bdee9596-e3a0-4ca8-b900-a8598d612c62" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "id":vars.id
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="86ba9ff6-4b50-4a15-8133-8e4dbefe66b7" path="/customer/{id}" config-ref="HTTP_Request_configuration1">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : vars.id
+}]]]></http:uri-params>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	id : vars.id
+}]]]></http:query-params>
+		</http:request>
+	</sub-flow>
+</mule>

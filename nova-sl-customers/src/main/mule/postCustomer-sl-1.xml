@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config3" doc:name="Database Config" doc:id="67197742-18cb-4a18-b2f8-1ab43b80dc87" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" database="xys_store" />
+	</db:config>
+	<sub-flow name="postCustomer" doc:id="be61dbb4-7aad-453f-a17b-5e5c01265218" >
+		<logger level="INFO" doc:name="Logger" doc:id="300c8f56-351e-48ca-a534-6ca79067be45" />
+		<db:insert doc:name="Insert" doc:id="3add199c-4a47-48b7-965c-323e4c1c1608" config-ref="Database_Config3">
+			<db:sql ><![CDATA[INSERT INTO customers (name, last_name, date_of_birth, address, identity_card, date_of_creation)
+VALUES (:name, :last_name, :date_of_birth, :address, :identity_card, :date_of_creation);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now() as Date { format: "yyyy-MM-dd" }
+}]]]></db:input-parameters>
+		</db:insert>
+		<db:select doc:name="Select" doc:id="7083542e-439a-441a-bd09-e5aa9193e32d" config-ref="Database_Config3">
+			<db:sql ><![CDATA[SELECT MAX(id) AS maxid, CONCAT(name, " ", last_name) AS name
+FROM customers
+WHERE id = (SELECT MAX(id) FROM customers);
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="9941a7d8-1fa2-4134-ba0c-0dd14e54226f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+	
+id: payload.maxid[0],
+name: payload.name[0]
+	
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
