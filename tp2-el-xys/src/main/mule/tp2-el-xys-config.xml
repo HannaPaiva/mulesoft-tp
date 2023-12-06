@@ -29,7 +29,8 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<http:request method="GET" doc:name="Request" doc:id="5c619535-d4cb-48fa-baf5-7568748b0afe" config-ref="HTTP_Request_configuration" path="/customer"/>
+		<http:request method="POST" doc:name="Request" doc:id="5c619535-d4cb-48fa-baf5-7568748b0afe" config-ref="HTTP_Request_configuration" path="/customer">
+		</http:request>
 	</sub-flow>
 	<sub-flow name="get:\customer:el-xys-config_SubFlow" doc:id="76499117-2cc3-46e5-862b-4ffb82356c7a">
 		<logger level="INFO" doc:name="Logger" doc:id="c6dd644c-eb3e-4798-9a0e-c3aeb4133cdb" message="get:\customers:el-xys-config" />
@@ -43,6 +44,11 @@ output application/json
 			</ee:variables>
 		</ee:transform>
 		<http:request method="GET" doc:name="Request" doc:id="93d75338-9349-4654-a480-0fd4814680bb" config-ref="HTTP_Request_configuration" path="/customer/{id}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.id
+}]]]></http:uri-params>
 		</http:request>
 	</sub-flow>
 	<sub-flow name="put:\customer\(id):application\json:el-xys-config_SubFlow" doc:id="ba2e607c-b6f0-4125-9521-3edadea552ca" >
@@ -58,6 +64,7 @@ output application/json
 output application/json
 ---
 {
+	id:vars.id,
   name: payload.name,
   last_name: payload.last_name,
   date_of_birth: payload.date_of_birth,
@@ -111,7 +118,13 @@ var data = mappedPayload mapObject {
 				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<http:request method="GET" doc:name="Request" doc:id="f8f95645-149a-4848-bd77-3831401d3ba3" config-ref="HTTP_Request_configuration1" path="/customer/{id}/orders"/>
+		<http:request method="GET" doc:name="Request" doc:id="f8f95645-149a-4848-bd77-3831401d3ba3" config-ref="HTTP_Request_configuration1" path="/customer/{id}/orders">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"id" : vars.id
+}]]]></http:uri-params>
+		</http:request>
 	</sub-flow>
 	<sub-flow name="post:\customer\order:application\json:el-xys-config_SubFlow" doc:id="2e4e1da2-0fbb-4f98-9e0f-68a3f82531cc">
 		<logger level="INFO" doc:name="Logger" doc:id="2917ddc4-fd0b-4444-ba68-1b6e59892447" message="get:\order\(id):el-xys-config" />

@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="get:\customers:el-xys-config" doc:id="3be8da74-c303-496a-bb3d-01a46d13c13d" >
+		<logger level="INFO" doc:name="Logger" doc:id="d633dcf8-cb70-4fb7-aeee-3b52f7f8b60d" message="get:\customers:el-xys-config" />
+		<db:select doc:id="2218ce97-b184-45a8-b9cc-76f716fda6b8" config-ref="Database_Config" doc:name="seleciona todos os costumers" >
+			<db:sql ><![CDATA[SELECT * FROM customers]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="filtra os dados de todos os customers" doc:id="57c61e95-15da-474d-be41-715a9162e13a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload map ((item, index) -> 
+{
+    name: item.name,
+    last_name: item.last_name,
+    date_of_birth: item.date_of_birth,
+    address: item.address,
+    identity_card: item.identity_card,
+    date_of_creation: item.date_of_creation
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="post:\customers:application\json:el-xys-config" doc:id="aae4ec72-d687-4749-a2d4-4f55bf8529e0" >
+		<logger level="INFO" doc:name="Logger" doc:id="bc918962-9bea-4ba8-a157-e37508fde5b0" message="post:\customers:application\json:el-xys-config" />
+		<ee:transform doc:name="filtragem dos dados do payload do customer" doc:id="1b03dfde-dde4-4b81-8c51-db3c947863bc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:insert doc:id="d2d8a79b-652c-4b5e-aeb7-cc7dc43ed65e" config-ref="Database_Config" doc:name="insert na base de dados do customer" >
+			<db:sql ><![CDATA[INSERT INTO customers (name, last_name, date_of_birth, address, identity_card, date_of_creation)
+VALUES (:name, :last_name, :date_of_birth, :address, :identity_card, :date_of_creation);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]]></db:input-parameters>
+		</db:insert>
+		<db:select doc:id="2091e656-0156-4d1d-ba8c-0e6acf7ee526" config-ref="Database_Config" doc:name="query para devolver o último customer inserido" >
+			<db:sql ><![CDATA[SELECT MAX(id) AS maxid, CONCAT(name, " ", last_name) AS name
+FROM customers
+WHERE id = (SELECT MAX(id) FROM customers);
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="resposta da requisição" doc:id="52867f26-3228-4ad6-8267-7ac83b8575ea" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+	
+id: payload.maxid[0],
+name: payload.name[0]
+	
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="get:\customers\(id):el-xys-config" doc:id="b1cc1dc4-ca54-4c52-a36b-1d2aa52debf5" >
+		<logger level="INFO" doc:name="Logger" doc:id="84d066bd-5a05-45de-a253-27070c1ad1ec" message="patch:\customers\(id):application\json:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="e65fcd5b-c074-4005-948b-4a1fa6d0eae3" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:id="b5127a50-8e68-4817-8040-60f3d10cec73" config-ref="Database_Config" doc:name="query para receber o customer especifico" >
+			<db:sql ><![CDATA[SELECT *
+FROM customers WHERE id = :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{id:vars.id}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="filtrar output e caso não exista, mostra que não foi encontrado" doc:id="5ba3dfba-9fd8-4757-883a-32bbad82b45d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+if (isEmpty(payload.date_of_creation)) 
+{
+  
+    "message": "Cliente não encontrado"
+  
+}
+else 
+{
+  
+    "name": payload.name[0],
+    "last_name": payload.last_name[0],
+    "date_of_birth":payload.date_of_birth[0],
+    "address": payload.address[0],
+    "identity_card": payload.identity_card[0],
+    "date_of_creation": payload.date_of_creation[0]
+  
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="patch:\customers\(id):application\json:el-xys-config" doc:id="9a079a89-72dc-4f1b-9f4f-b6f9a4d3f9e0" >
+		<logger level="INFO" doc:name="Logger" doc:id="f78a6367-2fb9-4617-85ec-4aaa6b9f6f4f" message="patch:\customers\(id):application\json:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="93b05ffc-3640-409a-bf0d-c7f33f000d24" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="código dataweave para criar um update com colunas dinâmicas" doc:id="45cfcf56-342b-490c-9664-b66c516ee786" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="dados" ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+
+var mappedPayload = payload filterObject ((value, key, index) -> value != null)
+var data = mappedPayload mapObject {
+    "query": $$ ++ " = '" ++ $ ++ "'"
+} pluck $ joinBy ", "
+
+---
+
+"query": "UPDATE customers SET " ++ data ++ " where id = " ++ vars.id
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:update doc:id="79208774-f2ba-48f1-8941-356362d95519" config-ref="Database_Config" autoGenerateKeys="true" doc:name="ação de atualizaçao de recursos especificos na base de dados" >
+			<db:sql ><![CDATA[#[vars.dados.query]]]></db:sql>
+		</db:update>
+	</flow>
+	<flow name="delete:\customers\(id):el-xys-config" doc:id="d080ffba-aec5-43f4-92b0-5eeda5a43b6f" >
+		<logger level="INFO" doc:name="Logger" doc:id="0570302c-f134-461b-a621-3a8e265b52df" message="#[vars.id]]" />
+		<ee:transform doc:name='uriParam "id"' doc:id="ba282bd7-2caf-4bbc-9aac-d7a94bb077a0" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams."id"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:delete doc:id="980e9cc2-2971-484e-82dd-b3f8c2fb6269" config-ref="Database_Config" doc:name="ação de delete na base de dados" >
+			<db:sql ><![CDATA[DELETE FROM customers WHERE id = :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{id:vars.id}]]]></db:input-parameters>
+		</db:delete>
+	</flow>
+	<flow name="put:\customers\(id):application\json:el-xys-config" doc:id="4ea4a7ad-12fd-4959-87b1-b5b6d4ad7f5e" >
+		<logger level="INFO" doc:name="Logger" doc:id="900e960e-927c-476f-a999-3c68c0a9a5b3" message="put:\customers\(id):application\json:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="491b63a1-68f8-4354-9ba5-f156916c79db" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="filtragem do payload do customer" doc:id="8b5b0d79-0103-4fd9-b4e2-96910cd0b4c3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:stored-procedure doc:id="4bd4689e-22d5-4eef-99c0-3fda825ac2a2" config-ref="Database_Config" doc:name="upsert com stored procedure, se não existir, cria, se existir, atualiza" >
+			<db:sql ><![CDATA[CALL update_or_insert(
+	:id, 
+ 	:name,
+    :last_name,
+    :date_of_birth,
+ 	:address,
+  	:identity_card
+
+)
+
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+                'id': vars.id,
+                'name': payload.name,
+                'last_name': payload.last_name,
+                'date_of_birth': payload.date_of_birth,
+                'address': payload.address,
+                'identity_card': payload.identity_card
+             
+            }]]]></db:input-parameters>
+		</db:stored-procedure>
+		<ee:transform doc:name="resposta da requisição" doc:id="bba07710-db34-4c30-96ac-aaf597f3a9dc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+"message": "Alteração à base de dados feita com sucesso",
+"id": vars.id
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getAllOrders" doc:id="0813ec67-f1ce-4799-9e01-e9356b3bf7c9" >
+		<logger level="INFO" doc:name="Logger" doc:id="a32f1619-6617-4b49-b918-70e4d17e96b9" />
+		<db:select doc:id="8070a294-ee55-47bc-97db-56432439c121" config-ref="Database_Config" doc:name="selecionar todas as orders, organizadas com cada cliente, cada produto" >
+			<db:sql ><![CDATA[SELECT
+   O.id_order AS order_id,
+    c.id AS customer_id,
+    p.name AS product_name,
+    o.purchase_date,
+    p.price,
+    o.carrier,
+    CONCAT(c.name, ' ', c.last_name) AS customer_name,
+    TIMESTAMPDIFF(YEAR, c.date_of_birth, CURDATE()) AS customer_age,
+    c.address,
+
+    c.identity_card
+
+
+FROM
+    customers c
+    
+right JOIN
+    orders o ON c.id = o.id_customer
+left JOIN
+    products p ON o.id_product = p.id_product
+
+GROUP BY
+    o.id_order;
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="filtra o output das encomendas" doc:id="cdcf2ff2-c6b5-4352-9253-0c3ef8a7f1bc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload map ((item, index) -> 
+{
+    order_id: item.order_id,
+    customer_id: item.customer_id,
+    costumer_name: item.customer_name,
+    costumer_age: item.customer_age,
+    product_name: item.product_name,
+    purchase_date: item.purchase_date,
+    price: item.price,
+    carrier: item.carrier,
+    address: item.address,
+    identity_card: item.identity_card,
+
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="postOrder" doc:id="f7b16894-3193-44fa-b129-21fdfc6e5b4b" >
+		<logger level="INFO" doc:name="Logger" doc:id="bab34a84-9187-4b92-9ec8-eec9d96a8319" />
+		<ee:transform doc:name="filtragem dos dados do payload da order" doc:id="523b1d50-2712-4101-9652-b30fb32d1434" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id_customer: payload.id_customer,	
+  id_product: payload.product_name,
+  datails: payload.details,
+  carrier: payload.carrier,
+  purchase_date: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:select doc:id="57eb904f-d95d-4437-b32a-ff6424b29ec5" doc:name="Select" >
+			<db:sql ><![CDATA[select * customer where id = :id]]></db:sql>
+		</db:select>
+		<db:insert doc:id="588fea67-d663-438e-ab25-c2c2d3ebc017" config-ref="Database_Config" doc:name="insert na base de dados da order" >
+			<db:sql ><![CDATA[INSERT INTO orders (id_customer, id_product, details, carrier, purchase_date)
+VALUES (:id_customer, :id_product, :details, :carrier, :purchase_date);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  id_customer: payload.id_customer,	
+  id_product: payload.product_name,
+  datails: payload.details,
+  carrier: payload.carrier,
+  purchase_date: now()
+}]]]></db:input-parameters>
+		</db:insert>
+		<db:select doc:id="40d31434-e902-4082-9c2e-46aa2dbd65f5" config-ref="Database_Config" doc:name="query para devolver a última compra inserida" >
+			<db:sql ><![CDATA[SELECT MAX(id_order) AS maxid
+WHERE id = (SELECT MAX(id_order) FROM orders);
+]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="resposta da requisição" doc:id="234a5256-2b7c-45f3-8798-2ee44dbda510" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+	
+id: payload.maxid[0],
+name: payload.name[0]
+	
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetOrderByID" doc:id="1296033b-324e-4677-8bc1-c78308a02bc5" >
+		<logger level="INFO" doc:name="Logger" doc:id="e1023536-f34e-45e5-af3b-14a1697512bf" />
+		<ee:transform doc:name='uriParam "id"' doc:id="aa61c6b3-6c9e-4ab2-84cd-af30507c1f51" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:id="aaf427de-2103-4dcb-ba70-26f5190fc89b" config-ref="Database_Config" doc:name="seleciona encomenda especifica por id" >
+			<db:sql ><![CDATA[SELECT
+   O.id_order AS order_id,
+    c.id AS customer_id,
+    p.name AS product_name,
+    o.purchase_date,
+    p.price,
+    o.carrier,
+    CONCAT(c.name, ' ', c.last_name) AS customer_name,
+    TIMESTAMPDIFF(YEAR, c.date_of_birth, CURDATE()) AS customer_age,
+    c.address,
+
+    c.identity_card
+
+
+FROM
+    customers c
+    
+right JOIN
+    orders o ON c.id = o.id_customer
+left JOIN
+    products p ON o.id_product = p.id_product
+    
+ WHERE id_order = :id
+
+GROUP BY
+    o.id_order;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: vars.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="filtra o output das encomendas" doc:id="15cca869-4c63-444c-b9c5-15d01d6a1d2f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+    order_id: payload.order_id,
+    customer_id: payload.customer_id,
+    costumer_name: payload.customer_name,
+    costumer_age: payload.customer_age,
+    product_name: payload.product_name,
+    purchase_date: payload.purchase_date,
+    price: payload.price,
+    carrier: payload.carrier,
+    address: payload.address,
+    identity_card: payload.identity_card,
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="getAllOrdersFromCustomer" doc:id="800e0bc5-ef1e-4cfa-b30e-e2707bc3bf28" >
+		<logger level="INFO" doc:name="Logger" doc:id="75f484d0-c4b3-4a3f-984d-ba105f0da218" />
+		<ee:transform doc:name='uriParam "id"' doc:id="13d79016-0639-412a-a13a-b354bd97e3ac" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:id="c4283b54-b85a-4646-b9d5-5e6ff5612740" config-ref="Database_Config" doc:name="seleciona encomenda especifica por id" >
+			<db:sql ><![CDATA[SELECT
+   O.id_order AS order_id,
+    c.id AS customer_id,
+    p.name AS product_name,
+    o.purchase_date,
+    p.price,
+    o.carrier,
+    CONCAT(c.name, ' ', c.last_name) AS customer_name,
+    TIMESTAMPDIFF(YEAR, c.date_of_birth, CURDATE()) AS customer_age,
+    c.address,
+
+    c.identity_card
+
+
+FROM
+    customers c
+    
+right JOIN
+    orders o ON c.id = o.id_customer
+left JOIN
+    products p ON o.id_product = p.id_product
+    
+ WHERE id = :id
+
+GROUP BY
+    o.id_order;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: vars.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="filtra o output das encomendas" doc:id="10acd969-1075-40e0-878c-aee4b0b4aaa8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+    order_id: payload.order_id,
+    customer_id: payload.customer_id,
+    costumer_name: payload.customer_name,
+    costumer_age: payload.customer_age,
+    product_name: payload.product_name,
+    purchase_date: payload.purchase_date,
+    price: payload.price,
+    carrier: payload.carrier,
+    address: payload.address,
+    identity_card: payload.identity_card,
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

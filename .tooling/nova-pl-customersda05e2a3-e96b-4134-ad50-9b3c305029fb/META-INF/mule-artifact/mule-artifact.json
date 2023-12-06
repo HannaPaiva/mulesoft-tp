@@ -1,0 +1,29 @@
+{
+  "configs": [
+    "getAllCustomers.xml",
+    "filter_data.xml",
+    "tp2-pl-customer-xys.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:nova-pl-customers:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.4.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "application-types.xml",
+        "filter_data.xml",
+        "getAllCustomers.xml",
+        "log4j2.xml",
+        "tp2-pl-customer-xys.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

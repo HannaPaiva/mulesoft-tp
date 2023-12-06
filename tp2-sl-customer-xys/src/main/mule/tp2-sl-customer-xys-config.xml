@@ -10,6 +10,21 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</db:config>
 	<sub-flow name="post:\customer:application\json:tp2-sl-customer-xys-config_SubFlow" doc:id="70e1fbc2-3df6-493c-be1e-7cea408e0d13" >
 		<logger level="INFO" doc:name="Logger" doc:id="ac12b6ac-d7bc-4682-9a5f-d66cc4fd98f6" />
+		<ee:transform doc:name="filtragem dos dados do payload do customer" doc:id="4e00f4ca-efdb-4b27-bbb2-185a50f8029f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<db:insert doc:name="insert na base de dados do customer" doc:id="cea3079a-802a-4629-854a-cbd8d1b6be3e" config-ref="Database_Config" >
 			<db:sql ><![CDATA[INSERT INTO customers (name, last_name, date_of_birth, address, identity_card, date_of_creation)
 VALUES (:name, :last_name, :date_of_birth, :address, :identity_card, :date_of_creation);]]></db:sql>
@@ -68,15 +83,16 @@ payload map ((item, index) ->
 		</ee:transform>
 	</sub-flow>
 	<sub-flow name="get:\customer\(id):tp2-sl-customer-xys-config_SubFlow" doc:id="f4961f7d-0eb2-4718-962a-6093589bc75c">
-		<logger level="INFO" doc:name="Logger" doc:id="68124b4e-eaf6-4de6-a25e-0d0b71fbfb75" />
+		<logger level="INFO" doc:name="Logger" doc:id="68124b4e-eaf6-4de6-a25e-0d0b71fbfb75" message="ID value: #[vars.id]"/>
 		<db:select doc:name="query para receber o customer especifico" doc:id="435d7018-2980-45f8-bd85-3b8be8cd6dfe" config-ref="Database_Config" >
 			<db:sql ><![CDATA[SELECT *
 FROM customers WHERE id = :id]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{id:vars.id}]]]></db:input-parameters>
 		</db:select>
-		<ee:transform doc:name="filtrar output e caso não exista, mostra que não foi encontrado" doc:id="0631ce86-556b-4e85-b3ef-2e0212bc4c81" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+		<logger level="INFO" doc:name="Logger" doc:id="8f4ee532-54cd-4f34-8a8b-eecad2b92e59" message="ID value: #[vars.id]"/>
+		<ee:transform doc:name="filtrar output e caso não exista, mostra que não foi encontrado" doc:id="0631ce86-556b-4e85-b3ef-2e0212bc4c81">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 

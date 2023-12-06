@@ -25,11 +25,20 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<http:request method="GET" doc:name="Request" doc:id="33e56488-95df-4065-94a5-350b6498d4ca" config-ref="HTTP_Request_configuration" path="/customer" />
+		<http:request method="POST" doc:name="Request" doc:id="33e56488-95df-4065-94a5-350b6498d4ca" config-ref="HTTP_Request_configuration" path="/customer" >
+			<http:body ><![CDATA[#[{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]]></http:body>
+		</http:request>
 	</sub-flow>
 	<sub-flow name="get:\customer:tp2-pl-customer-xys-config_SubFlow" doc:id="b8cd7ddc-85ac-4c49-9b40-52e2af64dbab" >
 		<logger level="INFO" doc:name="Logger" doc:id="da220412-c140-4e69-be8e-4c4b87ebc5ff" message="get:\order\(id):el-xys-config" />
-		<http:request method="GET" doc:name="Request" doc:id="7e763389-61d6-4050-a2c5-54b0a8bfc8a2" config-ref="HTTP_Request_configuration" path="/customer" >
+		<http:request method="GET" doc:name="Request" doc:id="7e763389-61d6-4050-a2c5-54b0a8bfc8a2" config-ref="HTTP_Request_configuration" path="/customer">
 		</http:request>
 	</sub-flow>
 	<sub-flow name="get:\customer\(id):tp2-pl-customer-xys-config_SubFlow" doc:id="6c933be3-474d-4195-b767-912617c36ca7" >
@@ -43,7 +52,7 @@ output application/json
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
-	id : "#[vars.id]"
+	"id" : vars.id
 }]]]></http:uri-params>
 		</http:request>
 	</sub-flow>
