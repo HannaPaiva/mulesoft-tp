@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_70e1fbc2_3df6_493c_be1e_7cea408e0d13_Input_Payload = {
+  address: String, 
+  date_of_birth: String, 
+  name: String, 
+  date_of_creation?: String, 
+  last_name: String, 
+  identity_card: String, 
+  _?: Any
+}
+

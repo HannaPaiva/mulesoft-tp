@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="b80dd6b7-21e6-4dd2-b4f3-1e60f6c8542e" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" database="xys_store" />
+	</db:config>
+	<sub-flow name="put:\customer\(id):application\json:tp2-sl-customer-xys-config_SubFlow" doc:id="70e1fbc2-3df6-493c-be1e-7cea408e0d13" >
+	</sub-flow>
+	<sub-flow name="delete:\customer\(id):tp2-sl-customer-xys-config_SubFlow" doc:id="df46fd64-2bc6-47e0-96eb-020b61ded219" >
+		<db:select doc:name="Select" doc:id="cc681920-a84b-4691-8eab-ffbf7ad241f3" />
+	</sub-flow>
+	<sub-flow name="patch:\customer\(id):application\json:tp2-sl-customer-xys-config_SubFlow" doc:id="240d9f4d-9935-4a9c-9d6c-17b78d0fb194" />
+	<sub-flow name="get:\customer:tp2-sl-customer-xys-config_SubFlow" doc:id="a52bd592-2584-4390-8974-127c9c1879e5" />
+	<sub-flow name="get:\customer\(id):tp2-sl-customer-xys-config_SubFlow" doc:id="f4961f7d-0eb2-4718-962a-6093589bc75c" />
+	<sub-flow name="post:\customer:application\json:tp2-sl-customer-xys-config_SubFlow" doc:id="b0dd6e98-b5be-4365-8105-3591cc3beff6" />
+</mule>

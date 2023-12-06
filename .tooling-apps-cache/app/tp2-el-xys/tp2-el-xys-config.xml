@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="00649ea7-7531-413f-b9b7-863573d793cb" basePath="/api">
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="8d1d7ae8-b14f-41d1-abfe-e12f14c6ea87" basePath="/api" >
+		<http:request-connection host="localhost" port="8083" />
+	</http:request-config>
+	<sub-flow name="post:\customer:application\json:el-xys-config_SubFlow" doc:id="81b99597-1c0e-4922-933a-8157f75c2dc3">
+		<logger level="INFO" doc:name="Logger" doc:id="70fa73b6-2532-4fd4-835f-987373404794" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name="filtragem dos dados do payload do customer" doc:id="6929bdbf-ae47-4ea7-a46c-90a78a98733a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="5c619535-d4cb-48fa-baf5-7568748b0afe" config-ref="HTTP_Request_configuration" path="/customer"/>
+	</sub-flow>
+	<sub-flow name="get:\customer:el-xys-config_SubFlow" doc:id="76499117-2cc3-46e5-862b-4ffb82356c7a">
+		<logger level="INFO" doc:name="Logger" doc:id="c6dd644c-eb3e-4798-9a0e-c3aeb4133cdb" message="get:\customers:el-xys-config" />
+		<http:request method="GET" doc:name="Request" doc:id="e1c6404d-7d1f-49a3-8ba9-b19a44410f9b" config-ref="HTTP_Request_configuration" path="/customer"/>
+	</sub-flow>
+	<sub-flow name="get:\customer\(id):el-xys-config_SubFlow" doc:id="e17e9c18-9c15-4f07-8d54-35c4b2f17c80">
+		<logger level="INFO" doc:name="Logger" doc:id="5195ce65-269d-4f32-8255-0cae3f0cd7bd" message="patch:\customers\(id):application\json:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="98846dff-3911-4b8b-bf38-8fa11abd2ad6">
+			<ee:variables>
+				<ee:set-variable variableName="id"><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="93d75338-9349-4654-a480-0fd4814680bb" config-ref="HTTP_Request_configuration" path="/customer/{id}">
+		</http:request>
+	</sub-flow>
+	<sub-flow name="put:\customer\(id):application\json:el-xys-config_SubFlow" doc:id="ba2e607c-b6f0-4125-9521-3edadea552ca" >
+		<logger level="INFO" doc:name="Logger" doc:id="21327ec6-41d5-4080-b4ee-362bcecaf0cd" message="get:\customers:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="6ca5fe7f-0ab0-4ff4-a7d1-41581fe1d3cd" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="filtragem do payload do customer" doc:id="bbe1e9aa-74e6-4cd4-8af8-08291d7fb4c7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="60ef9028-97bf-4b42-9067-d4af984e250c" path="/customer/{id}" config-ref="HTTP_Request_configuration"/>
+	</sub-flow>
+	<sub-flow name="patch:\customer\(id):application\json:el-xys-config_SubFlow" doc:id="2e787d58-ddbd-493e-84ee-b7f2d0333ab6">
+		<logger level="INFO" doc:name="Logger" doc:id="12ebe89a-991d-48e2-b26d-827918865b11" message="get:\customers:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="a8912123-c1cc-489b-ae41-226d0dba1473">
+			<ee:variables>
+				<ee:set-variable variableName="id"><![CDATA[attributes.uriParams."id"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="código dataweave para criar um update com colunas dinâmicas" doc:id="51334549-994d-4777-8568-de4ee6962865">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="dados"><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+
+var mappedPayload = payload filterObject ((value, key, index) -> value != null)
+var data = mappedPayload mapObject {
+    "query": $$ ++ " = '" ++ $ ++ "'"
+} pluck $ joinBy ", "
+
+---
+
+"query": "UPDATE customers SET " ++ data ++ " where id = " ++ vars.id
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="e7dc90df-7329-484e-afc5-dbe084e03b41" path="/customer/{id}" config-ref="HTTP_Request_configuration"/>
+	</sub-flow>
+	<sub-flow name="delete:\customer\(id):el-xys-config_SubFlow" doc:id="992f395d-7908-45e1-aea5-8613710eaecc" >
+		<logger level="INFO" doc:name="Logger" doc:id="9ab26adc-382c-419a-bdc6-72b41e6009f7" message="get:\customers:el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="a388281d-6417-4036-aa54-9c9d2f0f729a" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams."id"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="a200c4ad-4971-47bb-8e6b-a133da3d3ba3" config-ref="HTTP_Request_configuration" path="/customer/{id}"/>
+	</sub-flow>
+	<sub-flow name="get:\customer\(id)\orders:el-xys-config_SubFlow" doc:id="2525f5db-f532-4f84-9810-7f82533687e4" >
+		<logger level="INFO" doc:name="Logger" doc:id="cc61d342-387c-484f-bf95-ab31160f855e" />
+		<ee:transform doc:name='uriParam "id"' doc:id="159f2185-0e08-4df3-b8cc-6639b1a4e875" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="f8f95645-149a-4848-bd77-3831401d3ba3" config-ref="HTTP_Request_configuration1" path="/customer/{id}/orders"/>
+	</sub-flow>
+	<sub-flow name="post:\customer\order:application\json:el-xys-config_SubFlow" doc:id="2e4e1da2-0fbb-4f98-9e0f-68a3f82531cc">
+		<logger level="INFO" doc:name="Logger" doc:id="2917ddc4-fd0b-4444-ba68-1b6e59892447" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name="filtragem dos dados do payload da order" doc:id="0aeccff5-6030-430b-b698-7c95f3976457">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id_customer: payload.id_customer,	
+  id_product: payload.product_name,
+  datails: payload.details,
+  carrier: payload.carrier,
+  purchase_date: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="ddb5ca51-58e5-44b3-a627-b82dae91cc94" path="/customer/order" config-ref="HTTP_Request_configuration1"/>
+	</sub-flow>
+	<sub-flow name="get:\order\(id):el-xys-config_SubFlow" doc:id="bb68ce76-7051-418e-aa88-6e1322c15f20" >
+		<logger level="INFO" doc:name="Logger" doc:id="745d85f6-359a-493c-be51-1ffe11ce0b3a" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="e1523fa3-a3fe-4379-982e-823c1500f434" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="f1e1198e-9986-4d8b-9001-8a1af5f17a3e" config-ref="HTTP_Request_configuration1" path="/order/{id}"/>
+	</sub-flow>
+</mule>

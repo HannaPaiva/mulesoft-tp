@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get:\customer\(id)\orders:tp2-pl-order-xys-config_SubFlow" doc:id="2d0cdceb-2cd9-4174-8e04-7dc926b7fbcd" >
+		<logger level="INFO" doc:name="Logger" doc:id="b6eb12fd-3049-4884-8f0f-f4478e7a083e" />
+		<ee:transform doc:name='uriParam "id"' doc:id="0af22306-d6bf-4921-8da3-cec8536268ac" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="post:\customer\order:application\json:tp2-pl-order-xys-config_SubFlow" doc:id="dc56512b-8056-4ce1-bc64-7f19abfe7bae" >
+		<logger level="INFO" doc:name="Logger" doc:id="58dd2897-0780-49f5-8fac-3a67dc42a698" />
+		<ee:transform doc:name="filtragem dos dados do payload da order" doc:id="0c346b05-7053-444d-b88b-e1f4af5d69c7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id_customer: payload.id_customer,	
+  id_product: payload.product_name,
+  datails: payload.details,
+  carrier: payload.carrier,
+  purchase_date: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="get:\order\(id):tp2-pl-order-xys-config_SubFLow" doc:id="61a22bce-bd47-413c-a97a-2a35aed381e6" >
+		<logger level="INFO" doc:name="Logger" doc:id="2d851d0b-b6bc-4498-bb97-1d036a933e79" />
+		<ee:transform doc:name='uriParam "id"' doc:id="c5bab25a-eeba-4683-a050-d2487ed915f2" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+</mule>

@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_a52bd592_2584_4390_8974_127c9c1879e5_Output_Payload = Array<{  address: String,   date_of_birth: String,   name: String,   date_of_creation?: String,   last_name: String,   identity_card: String,   _?: Any}>
+

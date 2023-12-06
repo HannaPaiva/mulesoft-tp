@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_2d0cdceb_2cd9_4174_8e04_7dc926b7fbcd_Output_Payload = Array<{  costumer_name?: String,   carrier?: String,   address?: String,   price?: Number,   costumer_age?: Number,   customer_id?: Number,   purchase_date?: String,   order_id?: Number,   product_name?: String,   identity_card?: Number,   _?: Any}>
+

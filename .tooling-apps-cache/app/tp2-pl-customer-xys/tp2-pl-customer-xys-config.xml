@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="350ab70a-4012-4046-8deb-3675f1b3e4f0" basePath="/api">
+		<http:request-connection host="localhost" port="8084" />
+	</http:request-config>
+	<sub-flow name="post:\customer:application\json:tp2-pl-customer-xys-config_SubFlow" doc:id="a0267cd3-71f9-4b97-91a4-d9f4605e50e8" >
+		<logger level="INFO" doc:name="Logger" doc:id="2af82bf9-d521-4a1d-84e3-6a4e5199304f" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name="filtragem dos dados do payload do customer" doc:id="113a37b8-19c6-4f96-97a4-b2f77ed54b18" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="33e56488-95df-4065-94a5-350b6498d4ca" config-ref="HTTP_Request_configuration" path="/customer" />
+	</sub-flow>
+	<sub-flow name="get:\customer:tp2-pl-customer-xys-config_SubFlow" doc:id="b8cd7ddc-85ac-4c49-9b40-52e2af64dbab" >
+		<logger level="INFO" doc:name="Logger" doc:id="da220412-c140-4e69-be8e-4c4b87ebc5ff" message="get:\order\(id):el-xys-config" />
+		<http:request method="GET" doc:name="Request" doc:id="7e763389-61d6-4050-a2c5-54b0a8bfc8a2" config-ref="HTTP_Request_configuration" path="/customer" >
+		</http:request>
+	</sub-flow>
+	<sub-flow name="get:\customer\(id):tp2-pl-customer-xys-config_SubFlow" doc:id="6c933be3-474d-4195-b767-912617c36ca7" >
+		<logger level="INFO" doc:name="Logger" doc:id="bae80a6b-e125-4418-93e5-114481c89642" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="10419c9e-918e-4d82-9208-f4d1abcaae97">
+			<ee:variables>
+				<ee:set-variable variableName="id"><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="34a4026b-b3b1-4b38-9429-fd5453aa19a3" config-ref="HTTP_Request_configuration" path="/customer/{id}" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : "#[vars.id]"
+}]]]></http:uri-params>
+		</http:request>
+	</sub-flow>
+	<sub-flow name="put:\customer\(id):application\json:tp2-pl-customer-xys-config_SubFlow" doc:id="74545cac-f650-4034-87b4-e52736563ef8" >
+		<logger level="INFO" doc:name="Logger" doc:id="e6c51ddb-f015-49f2-89ea-298f0d38003e" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="41bffbb8-0953-4ea0-9113-90e4ee152164">
+			<ee:variables>
+				<ee:set-variable variableName="id"><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="filtragem do payload do customer" doc:id="cd9c2214-5aa7-4eb3-b7e4-c9adb0835fa5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  name: payload.name,
+  last_name: payload.last_name,
+  date_of_birth: payload.date_of_birth,
+  address: payload.address,
+  identity_card: payload.identity_card,
+  date_of_creation: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="541e423a-1dea-4d09-ae44-39068a3dbb5a" config-ref="HTTP_Request_configuration" path="/customer/{id}" />
+	</sub-flow>
+	<sub-flow name="patch:\customer\(id):application\json:tp2-pl-customer-xys-config_SubFlow" doc:id="68740bc4-c2e9-4ddb-997d-41ca370553d5" >
+		<logger level="INFO" doc:name="Logger" doc:id="f1c532f3-91d3-41a6-8bff-daab101cb56b" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="afb7faef-4218-4b36-9fb9-b9462d51e988" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams."id"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="código dataweave para criar um update com colunas dinâmicas" doc:id="1fc4d13d-ffcd-4927-8222-1bc0366c698d" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="dados" ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+
+var mappedPayload = payload filterObject ((value, key, index) -> value != null)
+var data = mappedPayload mapObject {
+    "query": $$ ++ " = '" ++ $ ++ "'"
+} pluck $ joinBy ", "
+
+---
+
+"query": "UPDATE customers SET " ++ data ++ " where id = " ++ vars.id
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="22cc573d-b25d-42a7-ad76-8c483e53bfe7" config-ref="HTTP_Request_configuration" path="/customer/{id}" />
+	</sub-flow>
+	<sub-flow name="delete:\customer\(id):tp2-pl-customer-xys-config_SubFlow" doc:id="5689e4da-055a-48dd-a76b-58d3f2dd02f1" >
+		<logger level="INFO" doc:name="Logger" doc:id="5e444b68-dcbc-48ca-9dc8-c6fcd53e69d0" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name='uriParam "id"' doc:id="c7ac63dc-6527-4eea-9e5a-df090fe4ad53" >
+			<ee:variables >
+				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams."id"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="e770fe44-7d6c-4d98-ac58-29e82defe702" config-ref="HTTP_Request_configuration" path="/customer/{id}"/>
+	</sub-flow>
+</mule>

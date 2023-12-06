@@ -6,7 +6,7 @@
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
-	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="00649ea7-7531-413f-b9b7-863573d793cb" basePath="/api" >
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="00649ea7-7531-413f-b9b7-863573d793cb" basePath="/api">
 		<http:request-connection host="localhost" port="8082" />
 	</http:request-config>
 	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="8d1d7ae8-b14f-41d1-abfe-e12f14c6ea87" basePath="/api" >
@@ -42,7 +42,8 @@ output application/json
 				<ee:set-variable variableName="id"><![CDATA[attributes.uriParams.'id']]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<http:request method="GET" doc:name="Request" doc:id="93d75338-9349-4654-a480-0fd4814680bb" config-ref="HTTP_Request_configuration" path="/customer/{id}"/>
+		<http:request method="GET" doc:name="Request" doc:id="93d75338-9349-4654-a480-0fd4814680bb" config-ref="HTTP_Request_configuration" path="/customer/{id}">
+		</http:request>
 	</sub-flow>
 	<sub-flow name="put:\customer\(id):application\json:el-xys-config_SubFlow" doc:id="ba2e607c-b6f0-4125-9521-3edadea552ca" >
 		<logger level="INFO" doc:name="Logger" doc:id="21327ec6-41d5-4080-b4ee-362bcecaf0cd" message="get:\customers:el-xys-config" />
@@ -114,6 +115,20 @@ var data = mappedPayload mapObject {
 	</sub-flow>
 	<sub-flow name="post:\customer\order:application\json:el-xys-config_SubFlow" doc:id="2e4e1da2-0fbb-4f98-9e0f-68a3f82531cc">
 		<logger level="INFO" doc:name="Logger" doc:id="2917ddc4-fd0b-4444-ba68-1b6e59892447" message="get:\order\(id):el-xys-config" />
+		<ee:transform doc:name="filtragem dos dados do payload da order" doc:id="0aeccff5-6030-430b-b698-7c95f3976457">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id_customer: payload.id_customer,	
+  id_product: payload.product_name,
+  datails: payload.details,
+  carrier: payload.carrier,
+  purchase_date: now()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<http:request method="GET" doc:name="Request" doc:id="ddb5ca51-58e5-44b3-a627-b82dae91cc94" path="/customer/order" config-ref="HTTP_Request_configuration1"/>
 	</sub-flow>
 	<sub-flow name="get:\order\(id):el-xys-config_SubFlow" doc:id="bb68ce76-7051-418e-aa88-6e1322c15f20" >
