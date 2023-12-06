@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f3f9f2a1-649c-4fce-9765-83d23d21063b" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" database="xys_store" />
+	</db:config>
+	<sub-flow name="get:\customer\(id)\orders:tp2-sl-order-xys-config_SubFlow" doc:id="2296528c-45e5-4d14-8a42-43d778f7d768" >
+	</sub-flow>
+	<sub-flow name="get:\order\(id):tp2-sl-order-xys-config_SubFlow" doc:id="1e558166-ac84-4751-8218-6aa3566ffd13" />
+	<sub-flow name="post:\customer\order:application\json:tp2-sl-order-xys-config_SubFlow" doc:id="f243f2e2-babf-4c5b-8ea9-03004aae2cb3" >
+		<db:select doc:name="Select" doc:id="17ae4b9c-1b75-47b4-95f4-9cf29fe1f270" />
+	</sub-flow>
+</mule>

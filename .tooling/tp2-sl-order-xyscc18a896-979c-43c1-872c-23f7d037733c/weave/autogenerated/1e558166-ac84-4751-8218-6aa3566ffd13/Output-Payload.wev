@@ -1,0 +1,16 @@
+%dw 2.0
+
+type auto_1e558166_ac84_4751_8218_6aa3566ffd13_Output_Payload = {
+  costumer_name?: String, 
+  carrier?: String, 
+  address?: String, 
+  price?: Number, 
+  costumer_age?: Number, 
+  customer_id?: Number, 
+  purchase_date?: String, 
+  order_id?: Number, 
+  product_name?: String, 
+  identity_card?: Number, 
+  _?: Any
+}
+
