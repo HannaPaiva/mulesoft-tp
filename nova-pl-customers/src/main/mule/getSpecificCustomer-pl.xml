@@ -15,15 +15,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 				<ee:set-variable variableName="id" ><![CDATA[attributes.uriParams.'id' as Number]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="ac2a9838-c2a0-4559-a09c-7ba8a0d6f7cb" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{ "id":vars.id
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
 		<http:request method="GET" doc:name="Request" doc:id="ce872244-b5e8-4131-a595-1437fd99f3f3" config-ref="HTTP_Request_configuration2" path="/customer/{id}">
 			<http:uri-params ><![CDATA[#[output application/java
 ---
